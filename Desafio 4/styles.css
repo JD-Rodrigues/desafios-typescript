@@ -1,0 +1,51 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.login-background{
+    width: 100%;
+    height: 100%;
+    background-color: rgb(88, 8, 179);
+    z-index: 999;
+    position: absolute;
+    padding-top: 100px;
+    transition: 0.5s;
+}
+
+.login-wrap{
+    width: 350px;
+    height: 350px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: aliceblue;
+    row-gap: 10px;
+}
+
+.auth-title{
+    margin-bottom: 30px;
+}
+
+.login-wrap input, .login-wrap button{
+    width: 80%;
+    height: 40px;
+    padding: 10px;
+    box-sizing: border-box;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    border-bottom: solid 3px rgb(68, 243, 255);
+}
+
+.login-wrap button{
+    background-color: rgb(68, 243, 255);
+}
+
+.login-wrap button:disabled{
+    background-color: rgba(68, 243, 255, 0.521);
+}

@@ -2,7 +2,9 @@
 
 console.log('Arquivo de testes. Pode mexer nele como quiser.')
 
-var apiKey = '9429cdab63dffdfd674f2356ed949b3d';
+import { IHttpClientGet,IRequestToken } from "./types";
+
+var apiKey:string;
 let requestToken:string;
 let username:string;
 let password:string;
@@ -10,100 +12,24 @@ let sessionId:string;
 let listId = '7101979';
 
 let loginButton = document.getElementById('login-button')! as HTMLButtonElement;
+let logoutButton = document.getElementById('logout-btn')! as HTMLButtonElement;
 let searchButton = document.getElementById('search-button')!;
 let searchContainer = document.getElementById('search-container')!;
+let ul = searchContainer.querySelector('ul')
 
-type TGenre = {
-    id:number
-    name:string
-}
 
-type TCompany = {
-    id:number
-    logo_path:string
-    name:string
-    origin_country:string    
-}
 
-type TProductionCountry ={
-    iso_3166_1:string
-    name:string
-}
-
-type TSpokenlanguage ={
-    english_name:string
-    iso_639_1:string
-    name:string
-}
-
-type Tbody = {
-    username:string
-    password:string
-    request_token:string
-}
-
-type TbodyPost = {
-    name:string
-    description:string
-    language:string
-}
-
-type TBodyAddMovie = {
-    media_id:number
-}
-
-interface IHttpClientGet {
-    url:string
-    method:string
-    body?: Tbody|TbodyPost|TBodyAddMovie|string
-}
-
-interface IMovieResponse {
-    adult:boolean
-    backdrop_path:string
-    belongs_to_collection:string|null
-    budget:number
-    genres:TGenre[]
-    homepage:string
-    id:number
-    imdb_id:string
-    original_language:string
-    original_title:string
-    overview:string
-    popularity:number
-    poster_path:string
-    production_companies:TCompany[]
-    production_countries:TProductionCountry[]
-    release_date:string
-    revenue:number
-    runtime:number
-    spoken_languages:TSpokenlanguage[]
-    status:string
-    tagline:string
-    title:string
-    video:boolean
-    vote_average:number
-    vote_count:number
-}
-
-interface IRequestToken{
-    success:boolean
-    expires_at:string
-    request_token:string
-    session_id?:string
-    results:IMovieResponse[]
-}
 
 
 loginButton.addEventListener('click', async () => {
-    
+  loginButton.disabled=true
   await criarRequestToken();
   console.log(requestToken)
   await logar();
   console.log([username,password])
   await criarSessao();
   console.log(sessionId)
-  
+  showHideLogin()   
 })
 
 searchButton.addEventListener('click', async () => {
@@ -123,6 +49,10 @@ searchButton.addEventListener('click', async () => {
   }
   
   searchContainer.appendChild(ul);
+})
+
+logoutButton.addEventListener('click', ()=>{  
+  showHideLogin()
 })
 
 
@@ -213,10 +143,8 @@ async function criarRequestToken () {
     url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
     method: "GET"
   }) as IRequestToken
-
   
-  requestToken = result.request_token
-  
+  requestToken = result.request_token 
   
 }
 
@@ -240,9 +168,39 @@ async function criarSessao() {
 
   if(result.session_id !== undefined){
     sessionId = result.session_id;
+  } 
+}
+
+function showHideLogin(){
+  const loginScreen = document.querySelector('.login-background')! as HTMLDivElement  
+  const api = document.getElementById('api-key') as HTMLInputElement
+
+  api.value = ''
+  
+  if(loginScreen.style.display!=='none'){
+    loginScreen.style.opacity = '0'
+    setTimeout(()=>{
+      loginScreen.style.display = 'none'
+    }, 1000)
+  }else{
+    loginScreen.style.display = 'flex'
+    setTimeout(()=>{
+      loginScreen.style.opacity = '1'
+      cleanFields()
+    }, 1000)
   }
   
+}
+
+function cleanFields(){
+  let search = document.getElementById('search')!as HTMLInputElement
+  let list = searchContainer.lastElementChild
+  apiKey = ''
+  search.value=''
   
+  if(list!==null){
+    list.innerHTML=''
+  }  
 }
 
 async function criarLista(nomeDaLista:string, descricao:string) {
