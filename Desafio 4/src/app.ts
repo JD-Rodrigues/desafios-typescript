@@ -10,15 +10,18 @@ let username:string;
 let password:string;
 let sessionId:string;
 let listId = '7101979';
+let newListName:string;
+let newListDesc:string;
 
 let loginButton = document.getElementById('login-button')! as HTMLButtonElement;
 let logoutButton = document.getElementById('logout-btn')! as HTMLButtonElement;
 let searchButton = document.getElementById('search-button')!;
 let searchContainer = document.getElementById('search-container')!;
+let createListButton = document.getElementById('create-list')! as HTMLButtonElement;
+let submitNewListButton = document.getElementById('submit-new-list-button')! as HTMLButtonElement;
+let closeNewListWindowButton = document.getElementById('create-list-back-button') as HTMLButtonElement;
+
 let ul = searchContainer.querySelector('ul')
-
-
-
 
 
 loginButton.addEventListener('click', async () => {
@@ -29,7 +32,12 @@ loginButton.addEventListener('click', async () => {
   console.log([username,password])
   await criarSessao();
   console.log(sessionId)
+  // listarListas()
   showHideLogin()   
+})
+
+logoutButton.addEventListener('click', ()=>{  
+  showHideLogin()
 })
 
 searchButton.addEventListener('click', async () => {
@@ -51,9 +59,25 @@ searchButton.addEventListener('click', async () => {
   searchContainer.appendChild(ul);
 })
 
-logoutButton.addEventListener('click', ()=>{  
-  showHideLogin()
+createListButton.addEventListener('click', ()=>{
+  const createNewList = document.querySelector('.create-list-background')! as HTMLDivElement  
+  showHideCreateNewList('flex', '1', 500)
+  
+  closeNewListWindowButton.addEventListener('click', ()=>{
+  showHideCreateNewList('none', '0', 1000)
+  })
 })
+
+submitNewListButton.addEventListener('click', ()=>{
+  submitNewListButton.disabled=true
+  criarLista(newListName, newListDesc)
+  showHideCreateNewList('none', '0', 1000) 
+})
+
+
+
+
+
 
 
 function preencherSenha() {
@@ -81,11 +105,35 @@ function preencherApi() {
     }
 }
 
+function preencherTituloNovaLista() {
+  const tituloInput = document.getElementById('list-title-input') as HTMLInputElement
+  if(tituloInput !== null){
+      newListName = tituloInput.value;
+      validateSubmiteNewListButton() ;
+  }
+}
+
+function preencherDescNovaLista() {
+  const descInput = document.getElementById('list-desc-input') as HTMLInputElement
+  if(descInput !== null){
+      newListDesc = descInput.value;
+      validateSubmiteNewListButton() ;
+  }
+}
+
 function validateLoginButton() {
   if (password && username && apiKey) {
     loginButton.disabled = false;
   } else {
     loginButton.disabled = true;
+  }
+}
+
+function validateSubmiteNewListButton() {
+  if (newListName && newListDesc) {
+    submitNewListButton.disabled = false;
+  } else {
+    submitNewListButton.disabled = true;
   }
 }
 
@@ -171,6 +219,14 @@ async function criarSessao() {
   } 
 }
 
+// async function listarListas() {
+//   let result = await HttpClient.get({
+//     url: `https://api.themoviedb.org/3/account/13078133/lists`,
+//     method: "GET"
+//   })
+//   console.log(result)
+// }
+
 function showHideLogin(){
   const loginScreen = document.querySelector('.login-background')! as HTMLDivElement  
   const api = document.getElementById('api-key') as HTMLInputElement
@@ -186,13 +242,23 @@ function showHideLogin(){
     loginScreen.style.display = 'flex'
     setTimeout(()=>{
       loginScreen.style.opacity = '1'
-      cleanFields()
+      cleanLoginFields()
     }, 1000)
   }
   
 }
 
-function cleanFields(){
+function showHideCreateNewList(display:string,opacity:string,time:number){
+  const createNewList = document.querySelector('.create-list-background')! as HTMLDivElement  
+
+  cleanNewListFields()  
+  createNewList.style.display=display
+  setTimeout(()=>{
+    createNewList.style.opacity = opacity    
+  }, time)  
+}
+
+function cleanLoginFields(){
   let search = document.getElementById('search')!as HTMLInputElement
   let list = searchContainer.lastElementChild
   apiKey = ''
@@ -201,6 +267,13 @@ function cleanFields(){
   if(list!==null){
     list.innerHTML=''
   }  
+}
+
+function cleanNewListFields(){
+  const tituloInput = document.getElementById('list-title-input') as HTMLInputElement
+  const descInput = document.getElementById('list-desc-input') as HTMLInputElement
+  tituloInput.value = ''
+  descInput.value = ''
 }
 
 async function criarLista(nomeDaLista:string, descricao:string) {

@@ -16,7 +16,7 @@
             <input id="senha" placeholder="Senha" type="password" onchange="preencherSenha(event)">
             <input id="api-key" placeholder="Api Key" onchange="preencherApi()">
             <button id="login-button" disabled>Login</button>
-    </div>
+        </div>
     </div>
     <nav>
         <span class="my-lists">Minhas listas</span>
@@ -24,6 +24,27 @@
         <button id="search-button">Pesquisar Filme</button>
         <button id="logout-btn">Logout</button>
     </nav>
+    <section id="my-lists">
+        <button id="create-list">Criar lista</button>
+        <ul id="list-of-lists">
+            <li>Filmes eróticos</li>
+            <li>Ação/Aventura</li>
+            <li>Filmes de viagem</li>
+            <li>Filmes de rock</li>
+            <li>Filmes noir</li>
+            <li>Cyberpunk</li>
+            <li>Guerra</li>
+            <li>Relgião</li>
+        </ul>
+        <div class="create-list-background">
+            <div class="create-list-wrap">
+                <button id="create-list-back-button">Voltar</button>
+                <div class="create-list-title"><h1>Criar Lista</h1></div>
+                <input id="list-title-input" onchange="preencherTituloNovaLista()" type="text" placeholder="Nome da lista" onchange="preencherLogin(event)">
+                <textarea onchange="preencherDescNovaLista()" id="list-desc-input" placeholder="Descrição da lista" type="text"></textarea>
+                <button id="submit-new-list-button" disabled>Criar</button>
+        </div>
+    </section>
     <div style="display: flex;">
         <div id="search-container" style="margin-left: 20px">
             
