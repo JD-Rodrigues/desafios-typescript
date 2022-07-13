@@ -37,6 +37,17 @@ type TBodyAddMovie = {
     media_id:number
 }
 
+type TMovieList = {
+    description:string
+    favorite_count:number
+    id:number
+    item_count:number
+    iso_639_1:string
+    list_type:string
+    name:string
+    poster_path:string|null
+}
+
 interface IHttpClientGet {
     url:string
     method:string
@@ -79,5 +90,29 @@ interface IRequestToken{
     results:IMovieResponse[]
 }
 
+interface IRequestAccountId {
+    avatar:{
+        gravatar:{
+            hash:string
+        },
+        tmdb:{
+            avatar_path:null
+        }
+    },
+    id:number
+    iso_639_1:string
+    iso_3166_1:string
+    name:string
+    include_adult:boolean
+    username:string
+}
 
-export {TGenre, TCompany, TBodyAddMovie, TProductionCountry, TSpokenlanguage, Tbody, TbodyPost,IHttpClientGet,IMovieResponse,IRequestToken }
+interface IResponseLists {
+    page:number
+    results:TMovieList[]
+    total_pages:number
+    total_results:number
+}
+
+
+export {TGenre, TCompany, TBodyAddMovie, TProductionCountry, TSpokenlanguage, Tbody, TbodyPost,IHttpClientGet,IMovieResponse,IRequestToken, IRequestAccountId, IResponseLists }

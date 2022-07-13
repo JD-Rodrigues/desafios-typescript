@@ -2,14 +2,16 @@
 
 console.log('Arquivo de testes. Pode mexer nele como quiser.')
 
-import { IHttpClientGet,IRequestToken } from "./types";
+import { IHttpClientGet,IRequestToken, IRequestAccountId, IResponseLists } from "./types";
 
 var apiKey:string;
 let requestToken:string;
 let username:string;
 let password:string;
 let sessionId:string;
+let accountId:number;
 let listId = '7101979';
+let responseLists:IResponseLists
 let newListName:string;
 let newListDesc:string;
 
@@ -17,6 +19,7 @@ let loginButton = document.getElementById('login-button')! as HTMLButtonElement;
 let logoutButton = document.getElementById('logout-btn')! as HTMLButtonElement;
 let searchButton = document.getElementById('search-button')!;
 let searchContainer = document.getElementById('search-container')!;
+let myListsButton = document.getElementById('my-lists-btn')!as HTMLButtonElement;
 let createListButton = document.getElementById('create-list')! as HTMLButtonElement;
 let submitNewListButton = document.getElementById('submit-new-list-button')! as HTMLButtonElement;
 let closeNewListWindowButton = document.getElementById('create-list-back-button') as HTMLButtonElement;
@@ -59,19 +62,25 @@ searchButton.addEventListener('click', async () => {
   searchContainer.appendChild(ul);
 })
 
+myListsButton.addEventListener('click', ()=>{
+  pegandoAccountId()
+  listarListas()
+  showHideMyListsArea()
+  cloneNode()
+})
+
 createListButton.addEventListener('click', ()=>{
-  const createNewList = document.querySelector('.create-list-background')! as HTMLDivElement  
-  showHideCreateNewList('flex', '1', 500)
+  showHideCreateNewList()
   
   closeNewListWindowButton.addEventListener('click', ()=>{
-  showHideCreateNewList('none', '0', 1000)
+  showHideCreateNewList()
   })
 })
 
 submitNewListButton.addEventListener('click', ()=>{
   submitNewListButton.disabled=true
   criarLista(newListName, newListDesc)
-  showHideCreateNewList('none', '0', 1000) 
+  showHideCreateNewList() 
 })
 
 
@@ -219,49 +228,51 @@ async function criarSessao() {
   } 
 }
 
-// async function listarListas() {
-//   let result = await HttpClient.get({
-//     url: `https://api.themoviedb.org/3/account/13078133/lists`,
-//     method: "GET"
-//   })
-//   console.log(result)
-// }
-
 function showHideLogin(){
   const loginScreen = document.querySelector('.login-background')! as HTMLDivElement  
   const api = document.getElementById('api-key') as HTMLInputElement
-
-  api.value = ''
   
-  if(loginScreen.style.display!=='none'){
+  if(loginScreen.style.display==='none'){
+    loginScreen.style.display = 'flex'
+    api.value = ''
+    setTimeout(()=>{
+      loginScreen.style.opacity = '1'
+    }, 1000)
+  }else{
     loginScreen.style.opacity = '0'
     setTimeout(()=>{
       loginScreen.style.display = 'none'
-    }, 1000)
-  }else{
-    loginScreen.style.display = 'flex'
-    setTimeout(()=>{
-      loginScreen.style.opacity = '1'
       cleanLoginFields()
     }, 1000)
   }
   
 }
 
-function showHideCreateNewList(display:string,opacity:string,time:number){
-  const createNewList = document.querySelector('.create-list-background')! as HTMLDivElement  
+function showHideCreateNewList(){
+  const createNewList = document.querySelector('.create-list-background') as HTMLDivElement  
+  
+  if (createNewList.style.display === "flex"){
+    createNewList.style.opacity = "0"   
+    cleanNewListFields() 
+    setTimeout(()=>{
+      createNewList.style.display='none'       
+      return null
+    }, 1000) 
+  } else{    
+    createNewList.style.display = 'flex'     
+    setTimeout(()=>{
+      createNewList.style.opacity = "1" 
+    }, 200)   
+  }
 
-  cleanNewListFields()  
-  createNewList.style.display=display
-  setTimeout(()=>{
-    createNewList.style.opacity = opacity    
-  }, time)  
+   
+  
+  
 }
 
 function cleanLoginFields(){
   let search = document.getElementById('search')!as HTMLInputElement
   let list = searchContainer.lastElementChild
-  apiKey = ''
   search.value=''
   
   if(list!==null){
@@ -286,6 +297,7 @@ async function criarLista(nomeDaLista:string, descricao:string) {
       language: "pt-br"
     }
   })
+  listarListas()
 }
 
 async function adicionarFilmeNaLista(filmeId:number, listaId:number) {
@@ -298,9 +310,53 @@ async function adicionarFilmeNaLista(filmeId:number, listaId:number) {
   })
 }
 
+async function pegandoAccountId() {
+  let result = await HttpClient.get({
+    url: `https://api.themoviedb.org/3/account?api_key=${apiKey}&session_id=${sessionId}`,
+    method: "GET"
+  }) as IRequestAccountId
+  accountId = result.id
+}
+
+async function listarListas() {
+  let response = await HttpClient.get({
+    url: `https://api.themoviedb.org/3/account/${accountId}/lists?api_key=${apiKey}&session_id=${sessionId}`,
+    method: "GET"
+  }) as IResponseLists
+  
+  const areaLists = document.querySelector('#my-lists #list-of-lists')!
+  areaLists.innerHTML=''
+  response.results.map(list=>{    
+    const li = document.createElement('li')
+    li.innerHTML=list.name
+    li.setAttribute('data-key', `${list.id}`)
+    areaLists.appendChild(li)
+  })
+  
+}
+
+function showHideMyListsArea(){
+  const myLists = document.querySelector('#my-lists')! as HTMLDivElement  
+
+  if(myLists.style.height==='100%'){
+    myLists.style.padding='0px'
+    myLists.style.height='0px'
+  }else{
+    myLists.style.padding='30px'
+    myLists.style.height='100%'
+  }
+}
+
 async function pegarLista() {
   let result = await HttpClient.get({
     url: `https://api.themoviedb.org/3/list/${listId}?api_key=${apiKey}`,
     method: "GET"
   })
+}
+
+function cloneNode(){
+  const nav = document.querySelector('nav')!
+  const clonedNav = nav.cloneNode(true)
+  
+  console.log(clonedNav)
 }
