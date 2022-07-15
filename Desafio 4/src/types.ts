@@ -37,7 +37,7 @@ type TBodyAddMovie = {
     media_id:number
 }
 
-type TMovieList = {
+type TMovieItemList = {
     description:string
     favorite_count:number
     id:number
@@ -109,7 +109,7 @@ interface IRequestAccountId {
 
 interface IResponseLists {
     page:number
-    results:TMovieList[]
+    results:TMovieItemList[]
     total_pages:number
     total_results:number
 }
