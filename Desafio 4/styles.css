@@ -5,7 +5,7 @@
 }
 
 body{
-    background-color: grey;
+    background-color: #e2effa;
 }
 
 
@@ -66,7 +66,7 @@ body{
     list-style-type: none;
 }
 
-#search-container .searched-movie-list .movie{
+.movie{
     width: 130px;
     height: 240px;
     margin:0;
@@ -76,7 +76,7 @@ body{
     position: relative;
 }
 
-#search-container .searched-movie-list .movie .cover{
+.movie .cover{
     width: 130px;
     height: 190px;
     border-top-left-radius: 5px;
@@ -91,7 +91,7 @@ body{
     background-repeat: no-repeat;
 }
 
-#search-container .searched-movie-list .movie .cover .rate{
+.movie .cover .rate{
     width: 15px;
     height: 15px;
     padding: 10px;
@@ -104,14 +104,14 @@ body{
     border-radius: 50%;
 }
 
-#search-container .searched-movie-list .movie .cover .add-remove-movie{
+.movie .cover .add-remove-movie{
     width: 30px;
     height: 30px;
     align-self: flex-end;
     box-sizing: border-box;
 }
 
-#search-container .searched-movie-list .movie .cover .add-remove-movie img{
+.movie .cover .add-remove-movie img, .list .add-remove-movie{
     width: 100%;
     border-radius: 50%;
     object-fit:cover;
@@ -130,6 +130,7 @@ body{
     font-size: 14px;
     border: solid grey 1px;
     display: none;
+    z-index: 999;
 }
 
 .add-to-new-list-title {
@@ -168,7 +169,7 @@ body{
 
 
 
-#search-container .searched-movie-list .movie .title{
+.movie .title{
     width: 130px;
     min-height:30px;
     padding-top: 5px;
@@ -177,13 +178,14 @@ body{
     font-family: Helvetica, sans-serif;
     font-size: 14px;
     text-align: center;
+    border-top:#410585 solid 1px ;
     border-bottom: 5px solid #410585;
     border-bottom-right-radius: 5px;
     border-bottom-left-radius: 5px;    
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: aliceblue;
+    background-color: rgb(255, 255, 255);
 }
 
 .create-list-background{
@@ -252,7 +254,7 @@ body{
 }
 
 #my-lists{
-    background-color:#f0f8ff;
+    background-color:#c2d1dd;
     min-height: 0;
     height: 0px;
     overflow: hidden;
@@ -287,8 +289,63 @@ body{
     padding: 10px;
     font-size: 30px;
     background-color: rgba(119, 0, 255, 0.24);
-    border-bottom: 2px solid rgb(88, 8, 179);
+    border-bottom: 2px solid #5808b3;
     border-radius: 5px;
+}
+
+.list-wrapper{
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #c22700;
+    position: absolute;   
+    display: none;
+}
+
+.list-wrapper header{
+    width: 50%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+.list-wrapper .back, .list-wrapper .remove-list{
+    padding: 10px;
+    background-color: #5808b3;
+}
+
+.list-info{
+    width: 50%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-info .title{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+}
+
+.list-info .description{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+
+.list{
+    overflow: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 50px;
+    column-gap: 10px;
+    row-gap: 15px;
+    list-style-type: none;
+    box-sizing: border-box;
 }
 
 

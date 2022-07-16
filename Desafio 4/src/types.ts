@@ -37,7 +37,7 @@ type TBodyAddMovie = {
     media_id:number
 }
 
-type TMovieItemList = {
+type TListOverview = {
     description:string
     favorite_count:number
     id:number
@@ -48,6 +48,25 @@ type TMovieItemList = {
     poster_path:string|null
 }
 
+type TMovieOverviewInsideAList = {
+    adult:boolean
+    backdrop_path:string|null
+    genre_ids:number[]
+    id:number
+    media_type:string
+    original_language:string
+    original_title?:string
+    original_name?:string
+    overview:string
+    popularity: number
+    poster_path:string|null
+    release_date:string
+    title:string
+    video:false
+    vote_average:number
+    vote_count:number
+ }
+
 interface IHttpClientGet {
     url:string
     method:string
@@ -56,7 +75,7 @@ interface IHttpClientGet {
 
 interface IMovieResponse {
     adult:boolean
-    backdrop_path:string
+    backdrop_path:string|null
     belongs_to_collection:string|null
     budget:number
     genres:TGenre[]
@@ -67,7 +86,7 @@ interface IMovieResponse {
     original_title:string
     overview:string
     popularity:number
-    poster_path:string
+    poster_path:string|null
     production_companies:TCompany[]
     production_countries:TProductionCountry[]
     release_date:string
@@ -96,7 +115,7 @@ interface IRequestAccountId {
             hash:string
         },
         tmdb:{
-            avatar_path:null
+            avatar_path:string | null
         }
     },
     id:number
@@ -109,10 +128,22 @@ interface IRequestAccountId {
 
 interface IResponseLists {
     page:number
-    results:TMovieItemList[]
+    results:TListOverview[]
     total_pages:number
     total_results:number
 }
 
+interface IListInside{
+    created_by:string
+    description:string
+    favorite_count:number
+    id:string
+    items:TMovieOverviewInsideAList[]
+    item_count:number,
+    iso_639_1:string
+    name:string,
+    poster_path:string | null
+}
 
-export {TGenre, TCompany, TBodyAddMovie, TProductionCountry, TSpokenlanguage, Tbody, TbodyPost,IHttpClientGet,IMovieResponse,IRequestToken, IRequestAccountId, IResponseLists }
+
+export {TGenre, TCompany, TBodyAddMovie, TProductionCountry, TSpokenlanguage, Tbody, TbodyPost,IHttpClientGet,IMovieResponse,IRequestToken, IRequestAccountId, IResponseLists, IListInside, TMovieOverviewInsideAList, TListOverview }
