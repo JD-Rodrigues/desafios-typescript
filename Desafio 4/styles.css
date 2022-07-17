@@ -12,7 +12,7 @@ body{
 .login-background{
     width: 100%;
     height: 100%;
-    background-color: rgb(88, 8, 179);
+    background-color: #5808b3;
     z-index: 999;
     position: absolute;
     padding-top: 100px;
@@ -45,7 +45,7 @@ body{
     outline: none;
     border: none;
     border-radius: 5px;
-    border-bottom: solid 3px rgb(68, 243, 255);
+    border-bottom: solid 3px #44f3ff;
 }
 
 .login-wrap button{
@@ -54,6 +54,21 @@ body{
 
 .login-wrap button:disabled{
     background-color: rgba(68, 243, 255, 0.521);
+}
+
+nav {
+    height: 50px;
+    background-image: linear-gradient(190deg,#5808b3 60%, #00ddec );
+    color: whitesmoke;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+nav button, nav input{
+    padding: 3px 8px;
+    color: #5808b3;
 }
 
 #search-container .searched-movie-list{
@@ -118,9 +133,9 @@ body{
     object-position: center;
 }
 
-#search-container .searched-movie-list .movie .cover .add-to-list-window{
+#search-container .searched-movie-list .movie .cover .add-to-list-window {
     width: 130px;
-    padding: 5px;
+    padding: 10px 5px;
     box-sizing: border-box;
     position:absolute;
     top: 78%;
@@ -129,9 +144,22 @@ body{
     color: #410585;
     font-size: 14px;
     border: solid grey 1px;
-    display: none;
-    z-index: 999;
+    flex-direction: column;
+    z-index: 998;
 }
+
+.none{
+    display: none;
+}
+
+.flex {
+    display: flex;
+}
+
+.add-to-list-window li:hover, .add-to-list-window span:hover{
+    font-weight: bold;
+}
+
 
 .add-to-new-list-title {
     margin-left: 20px;
@@ -296,30 +324,44 @@ body{
 .list-wrapper{
     width: 100%;
     min-height: 100%;
+    max-height: auto;
+    padding: 50px;
     display: flex;
     flex-direction: column;
-    background-color: #c22700;
+    background-color: #c2d1dd;
     position: absolute;   
+    z-index: 999;
     display: none;
+    box-sizing: border-box;
 }
 
 .list-wrapper header{
     width: 50%;
     margin: auto;
+    margin-top: 0;
+    margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
+    padding: 0;
 }
 
 .list-wrapper .back, .list-wrapper .remove-list{
-    padding: 10px;
+    padding: 5px 10px;
     background-color: #5808b3;
+    color: aliceblue;
+    border-radius: 5px;
+
 }
 
 .list-info{
     width: 50%;
     margin: auto;
+    margin-top: 0;
+    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
+    row-gap: 20px;
+    
 }
 
 .list-info .title{
@@ -337,15 +379,57 @@ body{
 }
 
 .list{
-    overflow: auto;
+    width: 100%;
+    height: auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 50px;
+    padding: 10px;
     column-gap: 10px;
     row-gap: 15px;
     list-style-type: none;
     box-sizing: border-box;
 }
+
+footer{
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    border-top: 1px rgba(201, 201, 201, 0.726) solid;
+    background-color: whitesmoke;
+}
+
+footer .networks{
+    display: flex;
+    width: 250px;
+    justify-content: space-between;
+}
+
+footer .networks .instagram-logo, .linkedin-logo, .twitter-logo, .whatsapp-logo{
+    width: 25px;
+    height: 25px;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.instagram-logo{
+    background-image: url('./src/assets/images/instagram-logo.png');
+}
+
+.linkedin-logo{
+    background-image: url('./src/assets/images/linkedin-logo.png');
+}
+
+.twitter-logo{
+    background-image: url('./src/assets/images/twitter-logo.png');
+}
+
+.whatsapp-logo{
+    background-image: url('./src/assets/images/whatsapp-logo.png');
+}
+
+
 
 

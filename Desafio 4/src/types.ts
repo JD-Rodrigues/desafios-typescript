@@ -140,7 +140,7 @@ interface IListInside{
     id:string
     items:TMovieOverviewInsideAList[]
     item_count:number,
-    iso_639_1:string
+    iso_639_1:string|number
     name:string,
     poster_path:string | null
 }

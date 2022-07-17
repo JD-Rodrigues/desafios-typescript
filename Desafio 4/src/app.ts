@@ -1,5 +1,8 @@
+// onload = ()=>{
+//   loadLatestMovies()
+// }
 
-
+import { ArrayTypeNode, NodeArray } from "../../../../../../node_modules/typescript/lib/typescript";
 import { IHttpClientGet,IRequestToken, IRequestAccountId, IResponseLists,IMovieResponse, TMovieOverviewInsideAList, IListInside, TListOverview } from "./types";
 
 var apiKey:string;
@@ -16,7 +19,10 @@ let logoutButton = document.getElementById('logout-btn')! as HTMLButtonElement;
 let searchButton = document.getElementById('search-button')!;
 let searchContainer = document.getElementById('search-container')!;
 let listWrapper = document.querySelector('.list-wrapper')! as HTMLDivElement
-let myListsButton = document.getElementById('my-lists-btn')!as HTMLButtonElement;
+let linkToHomePage = document.querySelector('#home-btn')! as HTMLSpanElement
+let linkToPopularMovies = document.querySelector('#popular-btn')! as HTMLSpanElement
+let linkToupcomingMovies = document.querySelector('#upcoming-btn')! as HTMLSpanElement
+let myListsButton = document.getElementById('my-lists-btn')! as HTMLButtonElement;
 let createListButton = document.getElementById('create-list')! as HTMLButtonElement;
 let submitNewListButton = document.getElementById('submit-new-list-button')! as HTMLButtonElement;
 let closeNewListWindowButton = document.getElementById('create-list-back-button') as HTMLButtonElement;
@@ -25,11 +31,12 @@ let closeNewListWindowButton = document.getElementById('create-list-back-button'
 loginButton.addEventListener('click', async () => {
   loginButton.disabled=true
   await criarRequestToken();
-  console.log(requestToken)
   await logar();
-  console.log([username,password])
   await criarSessao();
-  console.log(sessionId)
+
+  let responseJson = await loadLatestMovies();
+  let listaDeFilmes = responseJson.results
+  mostrarFilmesBuscados(listaDeFilmes) 
   showHideLogin()  
 })
 
@@ -41,6 +48,7 @@ logoutButton.addEventListener('click', ()=>{
 })
 
 searchButton.addEventListener('click', async () => {
+  searchContainer.innerHTML=''
   hideList()
   hideMyListsArea()
   let search = document.getElementById('search') as HTMLInputElement;
@@ -58,6 +66,24 @@ myListsButton.addEventListener('click', ()=>{
   pegandoAccountId()
   listarListas()
   myLists.style.height==='100%'?hideMyListsArea():showMyListsArea()
+})
+
+linkToHomePage.addEventListener('click', async()=>{
+  let responseJson = await loadLatestMovies();
+  let listaDeFilmes = responseJson.results
+  mostrarFilmesBuscados(listaDeFilmes) 
+})
+
+linkToPopularMovies.addEventListener('click', async()=>{
+  let responseJson = await loadPopularMovies();
+  let listaDeFilmes = responseJson.results
+  mostrarFilmesBuscados(listaDeFilmes) 
+})
+
+linkToupcomingMovies.addEventListener('click', async()=>{
+  let responseJson = await loadUpcomingMovies();
+  let listaDeFilmes = responseJson.results
+  mostrarFilmesBuscados(listaDeFilmes) 
 })
 
 createListButton.addEventListener('click', ()=>{
@@ -182,9 +208,39 @@ async function procurarFilme(query:string) {
   return result
 }
 
-async function movieItem(){
+async function loadLatestMovies() {
+  let result = await HttpClient.get({
+    url: `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}`,
+    method: "GET"
+  }) as IRequestToken
+  console.log(result)
+  return result
+}
+
+async function loadPopularMovies() {
+  let result = await HttpClient.get({
+    url: `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}`,
+    method: "GET"
+  }) as IRequestToken
+  console.log(result)
+  return result
+}
+
+async function loadUpcomingMovies() {
+  let result = await HttpClient.get({
+    url: `https://api.themoviedb.org/3/movie/upcoming?api_key=${apiKey}`,
+    method: "GET"
+  }) as IRequestToken
+  console.log(result)
+  return result
+}
+
+
+
+async function movieItem(movieId:number){
   const movie = document.createElement('li')
   movie.classList.add('movie')
+  movie.setAttribute('data-key',`${movieId}`)
 
   const cover = document.createElement('div')
   cover.classList.add('cover')
@@ -199,23 +255,22 @@ async function movieItem(){
 
   const addRemoveMovie = document.createElement('div')
   addRemoveMovie.classList.add('add-remove-movie')
-  addRemoveMovie.addEventListener('click', ()=>{
-    let addToListWindow = document.querySelector('.searched-movie-list .movie .cover .add-to-list-window')! as HTMLDivElement
-
-    if(addToListWindow.style.display==='none'){
-      addToListWindow.style.display='flex'
-    }else{
-      addToListWindow.style.display='none'
-    }
-  })
+  addRemoveMovie.setAttribute('data-key',`${movieId}`)
 
   const iconAddRemoveMovie = document.createElement('img')
 
   addRemoveMovie.appendChild(iconAddRemoveMovie)
   cover.appendChild(rate)
   cover.appendChild(addRemoveMovie)
-  const addToList = await addToListModal()
+  const addToList = await addToListModal(movieId)
   cover.appendChild(addToList)
+
+  addToList.classList.toggle('none')
+
+  addRemoveMovie.addEventListener('click', ()=>{
+    addToList.classList.toggle('none')
+    movieId!==undefined && hideNotSelectedAddToListModals(movieId)
+  })  
 
   const movieTitle = document.createElement('div')!
   movieTitle.classList.add('title')
@@ -230,7 +285,53 @@ async function movieItem(){
   return movie
 }
 
-async function addToListModal(){
+async function movieItemInsideList(movieId:number, listId:number){
+  const movie = document.createElement('li')
+  movie.classList.add('movie')
+  movie.setAttribute('data-key',`${movieId}`)
+
+  const cover = document.createElement('div')
+  cover.classList.add('cover')
+
+  const rate = document.createElement('div')
+  rate.classList.add('rate')
+
+  const rateValue = document.createElement('div')
+  rateValue.classList.add('rate-value')
+
+  rate.appendChild(rateValue)
+
+  const addRemoveMovie = document.createElement('div')
+  addRemoveMovie.classList.add('add-remove-movie')
+  addRemoveMovie.setAttribute('data-key',`${movieId}`)
+
+  const iconAddRemoveMovie = document.createElement('img')
+
+  addRemoveMovie.appendChild(iconAddRemoveMovie)
+  cover.appendChild(rate)
+  cover.appendChild(addRemoveMovie)
+
+  addRemoveMovie.addEventListener('click', async()=>{
+    await removeMovieFromList(movieId,listId)    
+    let allInfoOfThisList = await pegarLista(listId)
+    document.querySelector('.list')!.innerHTML=''
+    mostrarFilmesDaLista(allInfoOfThisList)
+  })  
+
+  const movieTitle = document.createElement('div')!
+  movieTitle.classList.add('title')
+
+  const titleText = document.createElement('div')
+  titleText.classList.add('title-text')
+
+  movieTitle.appendChild(titleText)
+  movie.appendChild(cover)
+  movie.appendChild(movieTitle)
+
+  return movie
+}
+
+async function addToListModal(movieId:number){
   const addToListWindow = document.createElement('div') as HTMLDivElement
   addToListWindow.classList.add('add-to-list-window')
   
@@ -248,10 +349,32 @@ async function addToListModal(){
 
   const lists = await listarListas()  
 
-  lists.forEach(list=>{
+  lists.forEach(async(list)=>{
+    const thisListInside = await pegarLista(list.id)
+    const moviesOfThisList = thisListInside.items
     let li = document.createElement('li')! as HTMLLIElement
+    li.dataset.listId=`${list.id}`
+    li.dataset.movieId=`${movieId}`
+    li.addEventListener('click', ()=>{
+      const movieIndexInTheList = moviesOfThisList.findIndex(movie=>movie.id===movieId)
+
+      if(movieIndexInTheList===-1){
+        adicionarFilmeNaLista(Number(li.dataset.movieId), Number(li.dataset.listId))
+      }else{
+        removeMovieFromList(movieId, Number(thisListInside.id))
+      }
+     
+      done.classList.toggle('check-done')
+    })
+
     let done = document.createElement('div')! as HTMLDivElement
-    done.classList.add('done')
+    done.classList.add('done')    
+
+    moviesOfThisList.map(movie=>{
+      if(movie.id === movieId){
+        done.classList.add('check-done')
+      }
+    })
 
     let span = document.createElement('span')! as HTMLSpanElement
     span.innerHTML=`${list.name}`
@@ -260,9 +383,9 @@ async function addToListModal(){
     li.appendChild(span)
 
     listsToAddMovieIn.appendChild(li)
-  })
 
-  
+    
+  })  
 
   addToListWindow.appendChild(addToNewList)
   
@@ -270,6 +393,8 @@ async function addToListModal(){
 
   return addToListWindow
 }
+
+
 
 async function adicionarFilme(filmeId:number) {
   let result = await HttpClient.get({
@@ -390,6 +515,16 @@ async function adicionarFilmeNaLista(filmeId:number, listId:number) {
   })
 }
 
+async function removeMovieFromList(filmeId:number, listId:number){
+  let result = await HttpClient.get({
+    url: `https://api.themoviedb.org/3/list/${listId}/remove_item?api_key=${apiKey}&session_id=${sessionId}`,
+    method: "POST",
+    body: {
+      media_id: filmeId
+    }
+  })
+}
+
 async function deletarLista(listId:string){
   try {
     let result = await HttpClient.get({
@@ -425,6 +560,7 @@ async function listarListas() {
     li.addEventListener('click', ()=>setListButton(id))
     areaLists.appendChild(li)
   })
+  
   return response.results as TListOverview[]
 }
 
@@ -453,6 +589,13 @@ function hideList(){
   listWrapper.style.display='none'
 }
 
+function hideNotSelectedAddToListModals(e:number){
+  let searchedMovies = document.querySelectorAll('.searched-movie-list .movie')
+  searchedMovies.forEach(movie=>{
+    let dataKey = Number(movie.getAttribute('data-key'))
+    dataKey!==e && movie.querySelector('.cover .add-to-list-window')!.classList.add('none')
+  })
+}
 async function pegarLista(listId:number) {
   let result = await HttpClient.get({
     url: `https://api.themoviedb.org/3/list/${listId}?api_key=${apiKey}`,
@@ -462,10 +605,11 @@ async function pegarLista(listId:number) {
 }
 
 async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[] ){
+  searchContainer.innerHTML=''
   let ul = document.createElement('ul');
   ul.classList.add('searched-movie-list')
   for (const item of ListaParaIterar) {
-    let movie = await movieItem();
+    let movie = await movieItem(item.id);
 
     let cover = movie.querySelector('.movie .cover')! as HTMLDivElement
     cover.style.backgroundImage=`url(https://www.themoviedb.org/t/p/w220_and_h330_face${item.poster_path})`
@@ -489,7 +633,6 @@ async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[] ){
 }
 
 async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilidade de eliminar um parâmetro */{
-  searchContainer.innerHTML=''
   listWrapper.innerHTML=''
   let header = document.createElement('header')
 
@@ -529,7 +672,7 @@ async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilida
   let ul = document.createElement('ul');
   ul.classList.add('list')
   for (const item of allListInfo.items) {
-    let movie = await movieItem();
+    let movie = await movieItemInsideList(item.id,Number(allListInfo.id))    
 
     let cover = movie.querySelector('.movie .cover')! as HTMLDivElement
     cover.style.backgroundImage=`url(https://www.themoviedb.org/t/p/w220_and_h330_face${item.poster_path})`
