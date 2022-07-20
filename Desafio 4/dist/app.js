@@ -85,6 +85,7 @@ loginButton.addEventListener('click', function () { return __awaiter(void 0, voi
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                if (!validateLogin()) return [3 /*break*/, 4];
                 loginButton.disabled = true;
                 return [4 /*yield*/, criarRequestToken()];
             case 1:
@@ -98,11 +99,13 @@ loginButton.addEventListener('click', function () { return __awaiter(void 0, voi
                 showHideLogin();
                 updateAndShowLatestMovies();
                 storeLoginData();
-                return [2 /*return*/];
+                _a.label = 4;
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 logoutButton.addEventListener('click', function () {
+    loginButton.disabled = false;
     hideList();
     hideMyListsArea();
     showHideLogin();
@@ -125,7 +128,7 @@ searchButton.addEventListener('click', function () { return __awaiter(void 0, vo
             case 1:
                 responseJson = _a.sent();
                 listaDeFilmes = responseJson.results;
-                mostrarFilmesBuscados(listaDeFilmes, "Resultados para " + query);
+                mostrarFilmesBuscados(listaDeFilmes, "Resultados para \"" + query + "\"");
                 search.value = '';
                 return [2 /*return*/];
         }
@@ -183,84 +186,53 @@ linkToupcomingMovies.addEventListener('click', function () { return __awaiter(vo
 closeMyListsAreaButton.addEventListener('click', function () {
     hideMyListsArea();
 });
-submitNewListButton.addEventListener('click', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var dataKey, lists, addedListId, _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                dataKey = submitNewListButton.getAttribute('data-key');
-                submitNewListButton.disabled = true;
-                return [4 /*yield*/, criarLista(newListName, newListDesc)];
-            case 1:
-                _b.sent();
-                return [4 /*yield*/, listarListas()];
-            case 2:
-                lists = _b.sent();
-                addedListId = lists[0].id;
-                return [4 /*yield*/, adicionarFilmeNaLista(Number(dataKey), addedListId)];
-            case 3:
-                _b.sent();
-                showHideCreateNewList();
-                _a = mostrarFilmesDaLista;
-                return [4 /*yield*/, pegarLista(addedListId)];
-            case 4:
-                _a.apply(void 0, [_b.sent()]);
-                updateAndShowLatestMovies();
-                submitNewListButton.removeAttribute('data-key');
-                return [2 /*return*/];
-        }
-    });
-}); });
 function preencherSenha() {
     var pass = document.getElementById('senha');
     if (pass !== null) {
         password = pass.value;
-        validateLoginButton();
     }
 }
 function preencherLogin() {
     var user = document.getElementById('login');
     if (user !== null) {
         username = user.value;
-        validateLoginButton();
     }
 }
 function preencherApi() {
     var api = document.getElementById('api-key');
     if (api !== null) {
         apiKey = api.value;
-        validateLoginButton();
     }
 }
 function preencherTituloNovaLista() {
     var tituloInput = document.getElementById('list-title-input');
     if (tituloInput !== null) {
         newListName = tituloInput.value;
-        validateSubmiteNewListButton();
     }
 }
 function preencherDescNovaLista() {
     var descInput = document.getElementById('list-desc-input');
     if (descInput !== null) {
         newListDesc = descInput.value;
-        validateSubmiteNewListButton();
     }
 }
-function validateLoginButton() {
-    if (password && username && apiKey) {
-        loginButton.disabled = false;
+function validateLogin() {
+    if (username.length < 1 || password.length < 4) {
+        alert('Preencha usuário e senha! A senha precisa ter no mínimo 4 caracteres.');
+        return false;
     }
-    else {
-        loginButton.disabled = true;
+    if (apiKey.length < 32) {
+        alert('Insira uma api_key válida!');
+        return false;
     }
+    return true;
 }
 function validateSubmiteNewListButton() {
-    if (newListName && newListDesc) {
-        submitNewListButton.disabled = false;
+    if (newListName === '' || newListName === undefined || newListName.length < 1) {
+        alert('Dê um nome para sua lista!');
+        return false;
     }
-    else {
-        submitNewListButton.disabled = true;
-    }
+    return true;
 }
 var HttpClient = /** @class */ (function () {
     function HttpClient() {
@@ -313,7 +285,6 @@ function procurarFilme(query) {
                         })];
                 case 1:
                     result = _a.sent();
-                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -330,7 +301,6 @@ function loadLatestMovies() {
                     })];
                 case 1:
                     result = _a.sent();
-                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -347,7 +317,6 @@ function loadPopularMovies() {
                     })];
                 case 1:
                     result = _a.sent();
-                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -364,7 +333,6 @@ function loadUpcomingMovies() {
                     })];
                 case 1:
                     result = _a.sent();
-                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -633,8 +601,8 @@ function showHideLogin() {
     }
 }
 function showHideCreateNewList(movieId) {
+    var _this = this;
     var createNewList = document.querySelector('.create-list-background');
-    var submitNewList = document.querySelector('#submit-new-list-button');
     if (createNewList.style.display === "flex") {
         createNewList.style.opacity = "0";
         cleanNewListFields();
@@ -646,6 +614,42 @@ function showHideCreateNewList(movieId) {
     else {
         createNewList.style.display = 'flex';
         submitNewListButton.setAttribute('data-key', "" + movieId);
+        submitNewListButton.addEventListener('click', function () { return __awaiter(_this, void 0, void 0, function () {
+            var dataKey, lists, addedListId, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!validateSubmiteNewListButton()) return [3 /*break*/, 5];
+                        dataKey = submitNewListButton.getAttribute('data-key');
+                        submitNewListButton.disabled = true;
+                        return [4 /*yield*/, criarLista(newListName, newListDesc)];
+                    case 1:
+                        _b.sent();
+                        return [4 /*yield*/, listarListas()];
+                    case 2:
+                        lists = _b.sent();
+                        addedListId = lists[0].id;
+                        return [4 /*yield*/, adicionarFilmeNaLista(Number(dataKey), addedListId)];
+                    case 3:
+                        _b.sent();
+                        showHideCreateNewList();
+                        _a = mostrarFilmesDaLista;
+                        return [4 /*yield*/, pegarLista(addedListId)];
+                    case 4:
+                        _a.apply(void 0, [_b.sent()]);
+                        updateAndShowLatestMovies();
+                        submitNewListButton.removeAttribute('data-key');
+                        submitNewListButton.disabled = false;
+                        newListName = '';
+                        newListDesc = '';
+                        _b.label = 5;
+                    case 5: return [2 /*return*/];
+                }
+            });
+        }); });
+        closeNewListWindowButton.addEventListener('click', function () {
+            showHideCreateNewList();
+        });
         setTimeout(function () {
             createNewList.style.opacity = "1";
         }, 200);
