@@ -79,7 +79,6 @@ var linkToPopularMovies = document.querySelector('#popular-btn');
 var linkToupcomingMovies = document.querySelector('#upcoming-btn');
 var myListsButton = document.getElementById('my-lists-btn');
 var closeMyListsAreaButton = document.querySelector('#close-my-lists-area');
-var createListButton = document.getElementById('create-list');
 var submitNewListButton = document.getElementById('submit-new-list-button');
 var closeNewListWindowButton = document.getElementById('create-list-back-button');
 loginButton.addEventListener('click', function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -126,7 +125,7 @@ searchButton.addEventListener('click', function () { return __awaiter(void 0, vo
             case 1:
                 responseJson = _a.sent();
                 listaDeFilmes = responseJson.results;
-                mostrarFilmesBuscados(listaDeFilmes);
+                mostrarFilmesBuscados(listaDeFilmes, "Resultados para " + query);
                 search.value = '';
                 return [2 /*return*/];
         }
@@ -159,7 +158,7 @@ linkToPopularMovies.addEventListener('click', function () { return __awaiter(voi
             case 1:
                 responseJson = _a.sent();
                 listaDeFilmes = responseJson.results;
-                mostrarFilmesBuscados(listaDeFilmes);
+                mostrarFilmesBuscados(listaDeFilmes, "Os mais populares");
                 return [2 /*return*/];
         }
     });
@@ -176,7 +175,7 @@ linkToupcomingMovies.addEventListener('click', function () { return __awaiter(vo
             case 1:
                 responseJson = _a.sent();
                 listaDeFilmes = responseJson.results;
-                mostrarFilmesBuscados(listaDeFilmes);
+                mostrarFilmesBuscados(listaDeFilmes, "Em breve");
                 return [2 /*return*/];
         }
     });
@@ -184,17 +183,12 @@ linkToupcomingMovies.addEventListener('click', function () { return __awaiter(vo
 closeMyListsAreaButton.addEventListener('click', function () {
     hideMyListsArea();
 });
-createListButton.addEventListener('click', function () {
-    showHideCreateNewList();
-    closeNewListWindowButton.addEventListener('click', function () {
-        showHideCreateNewList();
-    });
-});
 submitNewListButton.addEventListener('click', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var lists, addedListId, _a;
+    var dataKey, lists, addedListId, _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
+                dataKey = submitNewListButton.getAttribute('data-key');
                 submitNewListButton.disabled = true;
                 return [4 /*yield*/, criarLista(newListName, newListDesc)];
             case 1:
@@ -203,12 +197,16 @@ submitNewListButton.addEventListener('click', function () { return __awaiter(voi
             case 2:
                 lists = _b.sent();
                 addedListId = lists[0].id;
+                return [4 /*yield*/, adicionarFilmeNaLista(Number(dataKey), addedListId)];
+            case 3:
+                _b.sent();
                 showHideCreateNewList();
                 _a = mostrarFilmesDaLista;
                 return [4 /*yield*/, pegarLista(addedListId)];
-            case 3:
+            case 4:
                 _a.apply(void 0, [_b.sent()]);
                 updateAndShowLatestMovies();
+                submitNewListButton.removeAttribute('data-key');
                 return [2 /*return*/];
         }
     });
@@ -483,6 +481,9 @@ function addToListModal(movieId) {
                     addToListWindow.classList.add('add-to-list-window');
                     addToNewList = document.createElement('div');
                     addToNewList.classList.add('add-to-new-list');
+                    addToNewList.addEventListener('click', function () {
+                        showHideCreateNewList(movieId);
+                    });
                     addToNewListTitle = document.createElement('span');
                     addToNewListTitle.classList.add('add-to-new-list-title');
                     addToNewListTitle.innerHTML = 'Nova lista';
@@ -631,8 +632,9 @@ function showHideLogin() {
         }, 1000);
     }
 }
-function showHideCreateNewList() {
+function showHideCreateNewList(movieId) {
     var createNewList = document.querySelector('.create-list-background');
+    var submitNewList = document.querySelector('#submit-new-list-button');
     if (createNewList.style.display === "flex") {
         createNewList.style.opacity = "0";
         cleanNewListFields();
@@ -643,6 +645,7 @@ function showHideCreateNewList() {
     }
     else {
         createNewList.style.display = 'flex';
+        submitNewListButton.setAttribute('data-key', "" + movieId);
         setTimeout(function () {
             createNewList.style.opacity = "1";
         }, 200);
@@ -843,14 +846,16 @@ function pegarLista(listId) {
         });
     });
 }
-function mostrarFilmesBuscados(ListaParaIterar) {
+function mostrarFilmesBuscados(ListaParaIterar, showTitle) {
     return __awaiter(this, void 0, void 0, function () {
-        var ul, _i, ListaParaIterar_1, item, movie, cover, rate, addMovieToListButtonImg, title;
+        var ul, title, _i, ListaParaIterar_1, item, movie, cover, rate, addMovieToListButtonImg, title_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     ul = document.createElement('ul');
                     ul.classList.add('searched-movie-list');
+                    title = document.createElement('h1');
+                    title.innerHTML = "<div><h1>" + showTitle + "</h1></div>";
                     _i = 0, ListaParaIterar_1 = ListaParaIterar;
                     _a.label = 1;
                 case 1:
@@ -867,8 +872,8 @@ function mostrarFilmesBuscados(ListaParaIterar) {
                     addMovieToListButtonImg.src = "./src/assets/images/list-plus.png";
                     addMovieToListButtonImg.alt = 'Adicionar a lista';
                     addMovieToListButtonImg.title = 'Adicionar a lista';
-                    title = movie.querySelector('.title');
-                    title.innerHTML = "" + item.original_title;
+                    title_1 = movie.querySelector('.title');
+                    title_1.innerHTML = "" + item.original_title;
                     ul.appendChild(movie);
                     _a.label = 3;
                 case 3:
@@ -876,6 +881,7 @@ function mostrarFilmesBuscados(ListaParaIterar) {
                     return [3 /*break*/, 1];
                 case 4:
                     searchContainer.innerHTML = '';
+                    searchContainer.appendChild(title);
                     searchContainer.appendChild(ul);
                     return [2 /*return*/];
             }
@@ -893,7 +899,7 @@ function updateAndShowLatestMovies() {
                 case 1:
                     responseJson = _a.sent();
                     listaDeFilmes = responseJson.results;
-                    mostrarFilmesBuscados(listaDeFilmes);
+                    mostrarFilmesBuscados(listaDeFilmes, "Nos cinemas");
                     return [2 /*return*/];
             }
         });
@@ -901,7 +907,7 @@ function updateAndShowLatestMovies() {
 }
 function mostrarFilmesDaLista(allListInfo) {
     return __awaiter(this, void 0, void 0, function () {
-        var header, back, remove, listInfo, title, description, ul, _i, _a, item, movie, cover, rate, addMovieToListButtonImg, title_1;
+        var header, back, remove, listInfo, title, description, ul, _i, _a, item, movie, cover, rate, addMovieToListButtonImg, title_2;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -920,6 +926,7 @@ function mostrarFilmesDaLista(allListInfo) {
                                 case 0: return [4 /*yield*/, deletarLista(allListInfo.id)];
                                 case 1:
                                     _a.sent();
+                                    updateAndShowLatestMovies();
                                     hideList();
                                     return [2 /*return*/];
                             }
@@ -958,8 +965,8 @@ function mostrarFilmesDaLista(allListInfo) {
                     addMovieToListButtonImg.src = "./src/assets/images/remove-item.jpg";
                     addMovieToListButtonImg.alt = 'Remover da lista';
                     addMovieToListButtonImg.title = 'Remover da lista';
-                    title_1 = movie.querySelector('.title');
-                    title_1.innerHTML = "" + (item.original_title === undefined ? item.original_name : item.original_title);
+                    title_2 = movie.querySelector('.title');
+                    title_2.innerHTML = "" + (item.original_title === undefined ? item.original_name : item.original_title);
                     ul.appendChild(movie);
                     _b.label = 3;
                 case 3:

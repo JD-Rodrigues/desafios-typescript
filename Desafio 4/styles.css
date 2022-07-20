@@ -78,9 +78,13 @@ nav button, nav input{
     min-height: 100vh;
     background-color:#e2effa;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    font-size: 10px;
+    padding-top: 50px;
 }
+
 
 .spinner{
     width: 200px;

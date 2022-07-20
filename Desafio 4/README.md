@@ -8,7 +8,6 @@ Este projeto consiste em uma aplicação que permite buscar filmes e criar lista
 *Sistema de login/logout com dados persistidos no localStorage;
 *Busca de filmes; 
 *Listas pessoais, que pode ser acessadas através da opção "Minhas listas", no menu;
-*Criação de novas listas através do botão "criar lista", no menu de listas;
 *Adição de filmes a listas através do botão "+" situado na capa de cada filme. É possível adicionar um filme em quantas listas quiser, assim como optar por adicionar em uma nova lista. As listas onde um filme já está adicionado aparecerão marcadas com um ✔.
 *Remover filmes de uma lista, clicando no ícone de remoção na capa de cada filme, dentro da lista;
 *Remover a lista, através do botão "Deletar lista", situado dentro da lista;

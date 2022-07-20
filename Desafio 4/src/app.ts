@@ -52,7 +52,6 @@ let linkToPopularMovies = document.querySelector('#popular-btn')! as HTMLSpanEle
 let linkToupcomingMovies = document.querySelector('#upcoming-btn')! as HTMLSpanElement
 let myListsButton = document.getElementById('my-lists-btn')! as HTMLButtonElement;
 let closeMyListsAreaButton = document.querySelector('#close-my-lists-area')! as HTMLButtonElement
-let createListButton = document.getElementById('create-list')! as HTMLButtonElement;
 let submitNewListButton = document.getElementById('submit-new-list-button')! as HTMLButtonElement;
 let closeNewListWindowButton = document.getElementById('create-list-back-button') as HTMLButtonElement;
 
@@ -86,7 +85,7 @@ searchButton.addEventListener('click', async () => {
   let responseJson = await procurarFilme(query);
   let listaDeFilmes = responseJson.results
 
-  mostrarFilmesBuscados(listaDeFilmes)  
+  mostrarFilmesBuscados(listaDeFilmes, `Resultados para ${query}`)  
   search.value=''
 })
 
@@ -110,7 +109,7 @@ linkToPopularMovies.addEventListener('click', async()=>{
   loading()
   let responseJson = await loadPopularMovies();
   let listaDeFilmes = responseJson.results
-  mostrarFilmesBuscados(listaDeFilmes) 
+  mostrarFilmesBuscados(listaDeFilmes, "Os mais populares") 
 })
 
 linkToupcomingMovies.addEventListener('click', async()=>{
@@ -119,29 +118,24 @@ linkToupcomingMovies.addEventListener('click', async()=>{
   loading()
   let responseJson = await loadUpcomingMovies();
   let listaDeFilmes = responseJson.results
-  mostrarFilmesBuscados(listaDeFilmes) 
+  mostrarFilmesBuscados(listaDeFilmes, "Em breve") 
 })
 
 closeMyListsAreaButton.addEventListener('click', ()=>{
   hideMyListsArea()
 })
 
-createListButton.addEventListener('click', ()=>{
-  showHideCreateNewList()
-  
-  closeNewListWindowButton.addEventListener('click', ()=>{
-  showHideCreateNewList()
-  })
-})
-
 submitNewListButton.addEventListener('click', async()=>{
+  let dataKey = submitNewListButton.getAttribute('data-key')
   submitNewListButton.disabled=true
   await criarLista(newListName, newListDesc)
   let lists = await listarListas()
-  let addedListId = lists[0].id
+  let addedListId = lists[0].id  
+  await adicionarFilmeNaLista(Number(dataKey), addedListId)
   showHideCreateNewList() 
   mostrarFilmesDaLista(await pegarLista(addedListId))
   updateAndShowLatestMovies()  
+  submitNewListButton.removeAttribute('data-key') 
 })
 
 function preencherSenha() {
@@ -299,6 +293,7 @@ async function movieItem(movieId:number){
   cover.appendChild(addRemoveMovie)
   const addToList = await addToListModal(movieId)
   cover.appendChild(addToList)
+  
 
   addToList.classList.toggle('none')
 
@@ -380,10 +375,14 @@ async function addToListModal(movieId:number){
   
   const addToNewList = document.createElement('div')
   addToNewList.classList.add('add-to-new-list')
+  addToNewList.addEventListener('click', ()=>{
+    showHideCreateNewList(movieId)
+  })
 
   const addToNewListTitle = document.createElement('span')
   addToNewListTitle.classList.add('add-to-new-list-title')
   addToNewListTitle.innerHTML='Nova lista'
+  
 
   addToNewList.appendChild(addToNewListTitle)
 
@@ -505,8 +504,9 @@ function showHideLogin(){
   
 }
 
-function showHideCreateNewList(){
-  const createNewList = document.querySelector('.create-list-background') as HTMLDivElement  
+function showHideCreateNewList(movieId?:number){
+  const createNewList = document.querySelector('.create-list-background') as HTMLDivElement 
+  const submitNewList = document.querySelector('#submit-new-list-button') as HTMLButtonElement
   
   if (createNewList.style.display === "flex"){
     createNewList.style.opacity = "0"   
@@ -516,7 +516,8 @@ function showHideCreateNewList(){
       return null
     }, 1000) 
   } else{    
-    createNewList.style.display = 'flex'     
+    createNewList.style.display = 'flex'   
+    submitNewListButton.setAttribute('data-key', `${movieId}`)  
     setTimeout(()=>{
       createNewList.style.opacity = "1" 
     }, 200)   
@@ -654,9 +655,12 @@ async function pegarLista(listId:number) {
   return result
 }
 
-async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[]){  
+async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[], showTitle:string){  
   let ul = document.createElement('ul');
   ul.classList.add('searched-movie-list')
+  let title = document.createElement('h1')! as HTMLHeadingElement
+  title.innerHTML=`<div><h1>${showTitle}</h1></div>`
+
   for (const item of ListaParaIterar) {
     let movie = await movieItem(item.id);
 
@@ -678,6 +682,7 @@ async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[]){
 
   }
   searchContainer.innerHTML=''
+  searchContainer.appendChild(title)
   searchContainer.appendChild(ul);
   
 }
@@ -686,7 +691,7 @@ async function updateAndShowLatestMovies(){
   loading()
   let responseJson = await loadLatestMovies();
   let listaDeFilmes = responseJson.results     
-  mostrarFilmesBuscados(listaDeFilmes)    
+  mostrarFilmesBuscados(listaDeFilmes, "Nos cinemas")    
 }
 
 async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilidade de eliminar um parâmetro */{
@@ -702,6 +707,7 @@ async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilida
   remove.classList.add('remove-list')
   remove.addEventListener('click', async()=>{
     await deletarLista(allListInfo.id)
+    updateAndShowLatestMovies()  
     hideList()
   })
   remove.innerHTML='Deletar Lista'
