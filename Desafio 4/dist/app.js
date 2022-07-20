@@ -85,8 +85,7 @@ loginButton.addEventListener('click', function () { return __awaiter(void 0, voi
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                if (!validateLogin()) return [3 /*break*/, 4];
-                loginButton.disabled = true;
+                if (!validateLoginButton()) return [3 /*break*/, 4];
                 return [4 /*yield*/, criarRequestToken()];
             case 1:
                 _a.sent();
@@ -105,7 +104,6 @@ loginButton.addEventListener('click', function () { return __awaiter(void 0, voi
     });
 }); });
 logoutButton.addEventListener('click', function () {
-    loginButton.disabled = false;
     hideList();
     hideMyListsArea();
     showHideLogin();
@@ -128,7 +126,7 @@ searchButton.addEventListener('click', function () { return __awaiter(void 0, vo
             case 1:
                 responseJson = _a.sent();
                 listaDeFilmes = responseJson.results;
-                mostrarFilmesBuscados(listaDeFilmes, "Resultados para \"" + query + "\"");
+                mostrarFilmesBuscados(listaDeFilmes, "Resultados para " + query);
                 search.value = '';
                 return [2 /*return*/];
         }
@@ -186,6 +184,34 @@ linkToupcomingMovies.addEventListener('click', function () { return __awaiter(vo
 closeMyListsAreaButton.addEventListener('click', function () {
     hideMyListsArea();
 });
+submitNewListButton.addEventListener('click', function () { return __awaiter(void 0, void 0, void 0, function () {
+    var dataKey, lists, addedListId, _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                dataKey = submitNewListButton.getAttribute('data-key');
+                submitNewListButton.disabled = true;
+                return [4 /*yield*/, criarLista(newListName, newListDesc)];
+            case 1:
+                _b.sent();
+                return [4 /*yield*/, listarListas()];
+            case 2:
+                lists = _b.sent();
+                addedListId = lists[0].id;
+                return [4 /*yield*/, adicionarFilmeNaLista(Number(dataKey), addedListId)];
+            case 3:
+                _b.sent();
+                showHideCreateNewList();
+                _a = mostrarFilmesDaLista;
+                return [4 /*yield*/, pegarLista(addedListId)];
+            case 4:
+                _a.apply(void 0, [_b.sent()]);
+                updateAndShowLatestMovies();
+                submitNewListButton.removeAttribute('data-key');
+                return [2 /*return*/];
+        }
+    });
+}); });
 function preencherSenha() {
     var pass = document.getElementById('senha');
     if (pass !== null) {
@@ -208,31 +234,37 @@ function preencherTituloNovaLista() {
     var tituloInput = document.getElementById('list-title-input');
     if (tituloInput !== null) {
         newListName = tituloInput.value;
+        validateSubmiteNewListButton();
     }
 }
 function preencherDescNovaLista() {
     var descInput = document.getElementById('list-desc-input');
     if (descInput !== null) {
         newListDesc = descInput.value;
+        validateSubmiteNewListButton();
     }
 }
-function validateLogin() {
-    if (username.length < 1 || password.length < 4) {
-        alert('Preencha usuário e senha! A senha precisa ter no mínimo 4 caracteres.');
+function validateLoginButton() {
+    var login = document.querySelector('#login');
+    var pass = document.querySelector('#senha');
+    var key = document.querySelector('#api-key');
+    if (login.value.length < 1 || pass.value.length < 4) {
+        alert('Insira login e senha! A senha precisa ter, no mínimo, 4 caracteres.');
         return false;
     }
-    if (apiKey.length < 32) {
-        alert('Insira uma api_key válida!');
+    if (key.value.length !== 32) {
+        alert('Insira uma chave de API válida!');
         return false;
     }
     return true;
 }
 function validateSubmiteNewListButton() {
-    if (newListName === '' || newListName === undefined || newListName.length < 1) {
-        alert('Dê um nome para sua lista!');
-        return false;
+    if (newListName && newListDesc) {
+        submitNewListButton.disabled = false;
     }
-    return true;
+    else {
+        submitNewListButton.disabled = true;
+    }
 }
 var HttpClient = /** @class */ (function () {
     function HttpClient() {
@@ -285,6 +317,7 @@ function procurarFilme(query) {
                         })];
                 case 1:
                     result = _a.sent();
+                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -292,16 +325,23 @@ function procurarFilme(query) {
 }
 function loadLatestMovies() {
     return __awaiter(this, void 0, void 0, function () {
-        var result;
+        var result, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, HttpClient.get({
-                        url: "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey,
-                        method: "GET"
-                    })];
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, HttpClient.get({
+                            url: "https://api.themoviedb.org/3/movie/now_playing?api_key=" + apiKey,
+                            method: "GET"
+                        })];
                 case 1:
                     result = _a.sent();
                     return [2 /*return*/, result];
+                case 2:
+                    error_1 = _a.sent();
+                    console.log(error_1);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     });
@@ -317,6 +357,7 @@ function loadPopularMovies() {
                     })];
                 case 1:
                     result = _a.sent();
+                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -333,6 +374,7 @@ function loadUpcomingMovies() {
                     })];
                 case 1:
                     result = _a.sent();
+                    console.log(result);
                     return [2 /*return*/, result];
             }
         });
@@ -540,20 +582,34 @@ function criarRequestToken() {
 }
 function logar() {
     return __awaiter(this, void 0, void 0, function () {
+        var error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, HttpClient.get({
-                        url: "https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=" + apiKey,
-                        method: "POST",
-                        body: {
-                            username: "" + username,
-                            password: "" + password,
-                            request_token: "" + requestToken
-                        }
-                    })];
+                case 0:
+                    loginButton.disabled = true;
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, HttpClient.get({
+                            url: "https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=" + apiKey,
+                            method: "POST",
+                            body: {
+                                username: "" + username,
+                                password: "" + password,
+                                request_token: "" + requestToken
+                            }
+                        })];
+                case 2:
                     _a.sent();
-                    return [2 /*return*/];
+                    return [3 /*break*/, 5];
+                case 3:
+                    error_2 = _a.sent();
+                    alert('Verifique seus dados de login e tente novamente!');
+                    return [3 /*break*/, 5];
+                case 4:
+                    loginButton.disabled = false;
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
             }
         });
     });
@@ -601,8 +657,8 @@ function showHideLogin() {
     }
 }
 function showHideCreateNewList(movieId) {
-    var _this = this;
     var createNewList = document.querySelector('.create-list-background');
+    var backFromNewListWindow = document.querySelector('#create-list-back-button');
     if (createNewList.style.display === "flex") {
         createNewList.style.opacity = "0";
         cleanNewListFields();
@@ -614,45 +670,12 @@ function showHideCreateNewList(movieId) {
     else {
         createNewList.style.display = 'flex';
         submitNewListButton.setAttribute('data-key', "" + movieId);
-        submitNewListButton.addEventListener('click', function () { return __awaiter(_this, void 0, void 0, function () {
-            var dataKey, lists, addedListId, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        if (!validateSubmiteNewListButton()) return [3 /*break*/, 5];
-                        dataKey = submitNewListButton.getAttribute('data-key');
-                        submitNewListButton.disabled = true;
-                        return [4 /*yield*/, criarLista(newListName, newListDesc)];
-                    case 1:
-                        _b.sent();
-                        return [4 /*yield*/, listarListas()];
-                    case 2:
-                        lists = _b.sent();
-                        addedListId = lists[0].id;
-                        return [4 /*yield*/, adicionarFilmeNaLista(Number(dataKey), addedListId)];
-                    case 3:
-                        _b.sent();
-                        showHideCreateNewList();
-                        _a = mostrarFilmesDaLista;
-                        return [4 /*yield*/, pegarLista(addedListId)];
-                    case 4:
-                        _a.apply(void 0, [_b.sent()]);
-                        updateAndShowLatestMovies();
-                        submitNewListButton.removeAttribute('data-key');
-                        submitNewListButton.disabled = false;
-                        newListName = '';
-                        newListDesc = '';
-                        _b.label = 5;
-                    case 5: return [2 /*return*/];
-                }
-            });
-        }); });
-        closeNewListWindowButton.addEventListener('click', function () {
-            showHideCreateNewList();
-        });
         setTimeout(function () {
             createNewList.style.opacity = "1";
         }, 200);
+        backFromNewListWindow.addEventListener('click', function () {
+            showHideCreateNewList();
+        });
     }
 }
 function cleanSearchFields() {
@@ -733,7 +756,7 @@ function removeMovieFromList(filmeId, listId) {
 }
 function deletarLista(listId) {
     return __awaiter(this, void 0, void 0, function () {
-        var result, error_1;
+        var result, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -746,7 +769,7 @@ function deletarLista(listId) {
                     result = _a.sent();
                     return [3 /*break*/, 3];
                 case 2:
-                    error_1 = _a.sent();
+                    error_3 = _a.sent();
                     listarListas();
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
@@ -894,17 +917,27 @@ function mostrarFilmesBuscados(ListaParaIterar, showTitle) {
 }
 function updateAndShowLatestMovies() {
     return __awaiter(this, void 0, void 0, function () {
-        var responseJson, listaDeFilmes;
+        var responseJson, lista, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     loading();
-                    return [4 /*yield*/, loadLatestMovies()];
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, loadLatestMovies()];
+                case 2:
                     responseJson = _a.sent();
-                    listaDeFilmes = responseJson.results;
-                    mostrarFilmesBuscados(listaDeFilmes, "Nos cinemas");
-                    return [2 /*return*/];
+                    lista = void 0;
+                    if (responseJson !== undefined)
+                        lista = responseJson.results;
+                    lista !== undefined && mostrarFilmesBuscados(lista, "Nos cinemas");
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_4 = _a.sent();
+                    console.log(error_4);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     });

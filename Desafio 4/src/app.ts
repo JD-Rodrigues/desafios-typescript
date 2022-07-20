@@ -1,5 +1,3 @@
-import { IHttpClientGet,IRequestToken, IRequestAccountId, IResponseLists,IMovieResponse, IListInside, TListOverview } from "./types";
-
 onload = ()=>{
   let user = localStorage.getItem('username')
   let pass = localStorage.getItem('password')
@@ -32,7 +30,7 @@ onload = ()=>{
   updateAndShowLatestMovies()  
 }
 
-
+import { IHttpClientGet,IRequestToken, IRequestAccountId, IResponseLists,IMovieResponse, TMovieOverviewInsideAList, IListInside, TListOverview } from "./types";
 
 var apiKey:string;
 let requestToken:string;
@@ -59,8 +57,7 @@ let closeNewListWindowButton = document.getElementById('create-list-back-button'
 
 
 loginButton.addEventListener('click', async () => {
-  if(validateLogin()){
-    loginButton.disabled=true
+  if(validateLoginButton()){
     await criarRequestToken();
     await logar();
     await criarSessao();
@@ -71,7 +68,6 @@ loginButton.addEventListener('click', async () => {
 })
 
 logoutButton.addEventListener('click', ()=>{  
-  loginButton.disabled=false
   hideList()
   hideMyListsArea()
   showHideLogin()
@@ -90,7 +86,7 @@ searchButton.addEventListener('click', async () => {
   let responseJson = await procurarFilme(query);
   let listaDeFilmes = responseJson.results
 
-  mostrarFilmesBuscados(listaDeFilmes, `Resultados para "${query}"`)  
+  mostrarFilmesBuscados(listaDeFilmes, `Resultados para ${query}`)  
   search.value=''
 })
 
@@ -130,10 +126,24 @@ closeMyListsAreaButton.addEventListener('click', ()=>{
   hideMyListsArea()
 })
 
+submitNewListButton.addEventListener('click', async()=>{
+  let dataKey = submitNewListButton.getAttribute('data-key')
+  submitNewListButton.disabled=true
+  await criarLista(newListName, newListDesc)
+  let lists = await listarListas()
+  let addedListId = lists[0].id  
+  await adicionarFilmeNaLista(Number(dataKey), addedListId)
+  showHideCreateNewList() 
+  mostrarFilmesDaLista(await pegarLista(addedListId))
+  updateAndShowLatestMovies()  
+  submitNewListButton.removeAttribute('data-key') 
+})
+
 function preencherSenha() {
     const pass = document.getElementById('senha') as HTMLInputElement
     if (pass !== null){
         password = pass.value;
+        
     }
   
 }
@@ -142,6 +152,7 @@ function preencherLogin() {
     const user = document.getElementById('login') as HTMLInputElement
     if(user!==null){
         username =user.value;
+    
     }
 }
 
@@ -149,6 +160,7 @@ function preencherApi() {
     const api = document.getElementById('api-key') as HTMLInputElement
     if(api !== null){
         apiKey = api.value;
+        
     }
 }
 
@@ -156,6 +168,7 @@ function preencherTituloNovaLista() {
   const tituloInput = document.getElementById('list-title-input') as HTMLInputElement
   if(tituloInput !== null){
       newListName = tituloInput.value;
+      validateSubmiteNewListButton() ;
   }
 }
 
@@ -163,29 +176,34 @@ function preencherDescNovaLista() {
   const descInput = document.getElementById('list-desc-input') as HTMLInputElement
   if(descInput !== null){
       newListDesc = descInput.value;
+      validateSubmiteNewListButton() ;
   }
 }
 
-function validateLogin() {
-  if (username.length<1||password.length<4) {
-    alert('Preencha usuário e senha! A senha precisa ter no mínimo 4 caracteres.')
-    return false
+function validateLoginButton() {
+  const login = document.querySelector('#login')! as HTMLInputElement
+  const pass = document.querySelector('#senha')! as HTMLInputElement
+  const key = document.querySelector('#api-key')! as HTMLInputElement
+
+  if (login.value.length<1 || pass.value.length<4) {
+  alert('Insira login e senha! A senha precisa ter, no mínimo, 4 caracteres.')
+  return false
   } 
 
-  if(apiKey.length<32){
-    alert('Insira uma api_key válida!')
-    return false
+  if(key.value.length!==32){
+  alert('Insira uma chave de API válida!')
+  return false
   }
-
   return true
+  
 }
 
 function validateSubmiteNewListButton() {
-  if (newListName===''||newListName===undefined|| newListName.length<1) {
-    alert('Dê um nome para sua lista!')
-    return false
-  } 
-  return true
+  if (newListName && newListDesc) {
+    submitNewListButton.disabled = false;
+  } else {
+    submitNewListButton.disabled = true;
+  }
 }
 
 class HttpClient {
@@ -226,15 +244,20 @@ async function procurarFilme(query:string) {
     url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodedQuery}`,
     method: "GET"
   }) as IRequestToken
+  console.log(result)
   return result
 }
 
 async function loadLatestMovies() {
-  let result = await HttpClient.get({
-    url: `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}`,
-    method: "GET"
-  }) as IRequestToken
-  return result
+  try {
+    let result = await HttpClient.get({
+      url: `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}`,
+      method: "GET"
+    }) as IRequestToken
+    return result
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 async function loadPopularMovies() {
@@ -242,6 +265,7 @@ async function loadPopularMovies() {
     url: `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}`,
     method: "GET"
   }) as IRequestToken
+  console.log(result)
   return result
 }
 
@@ -250,6 +274,7 @@ async function loadUpcomingMovies() {
     url: `https://api.themoviedb.org/3/movie/upcoming?api_key=${apiKey}`,
     method: "GET"
   }) as IRequestToken
+  console.log(result)
   return result
 }
 
@@ -425,6 +450,8 @@ async function addToListModal(movieId:number){
   return addToListWindow
 }
 
+
+
 async function adicionarFilme(filmeId:number) {
   let result = await HttpClient.get({
     url: `https://api.themoviedb.org/3/movie/${filmeId}?api_key=${apiKey}&language=en-US`,
@@ -443,15 +470,22 @@ async function criarRequestToken () {
 }
 
 async function logar() {
-  await HttpClient.get({
-    url: `https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=${apiKey}`,
-    method: "POST",
-    body: {
-      username: `${username}`,
-      password: `${password}`,
-      request_token: `${requestToken}`
-    }
-  })
+  loginButton.disabled=true
+  try {
+    await HttpClient.get({
+      url: `https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=${apiKey}`,
+      method: "POST",
+      body: {
+        username: `${username}`,
+        password: `${password}`,
+        request_token: `${requestToken}`
+      }
+    })
+  } catch (error) {
+    alert('Verifique seus dados de login e tente novamente!')
+  } finally{
+    loginButton.disabled=false
+  }
 }
 
 async function criarSessao() {
@@ -493,6 +527,7 @@ function showHideLogin(){
 
 function showHideCreateNewList(movieId?:number){
   const createNewList = document.querySelector('.create-list-background') as HTMLDivElement 
+  const backFromNewListWindow = document.querySelector('#create-list-back-button') as HTMLButtonElement
   
   if (createNewList.style.display === "flex"){
     createNewList.style.opacity = "0"   
@@ -504,31 +539,13 @@ function showHideCreateNewList(movieId?:number){
   } else{    
     createNewList.style.display = 'flex'   
     submitNewListButton.setAttribute('data-key', `${movieId}`)  
-    submitNewListButton.addEventListener('click', async()=>{
-      if(validateSubmiteNewListButton()){
-        let dataKey = submitNewListButton.getAttribute('data-key')
-        submitNewListButton.disabled=true
-        await criarLista(newListName, newListDesc)
-        let lists = await listarListas()
-        let addedListId = lists[0].id  
-        await adicionarFilmeNaLista(Number(dataKey), addedListId)
-        showHideCreateNewList() 
-        mostrarFilmesDaLista(await pegarLista(addedListId))
-        updateAndShowLatestMovies()  
-        submitNewListButton.removeAttribute('data-key') 
-        submitNewListButton.disabled=false
-        newListName=''
-        newListDesc=''
-      }
-    })
-    closeNewListWindowButton.addEventListener('click', ()=>{
-        showHideCreateNewList()
-    })
-    
     setTimeout(()=>{
       createNewList.style.opacity = "1" 
-    }, 200)   
-  } 
+    }, 200)  
+    backFromNewListWindow.addEventListener('click', ()=>{
+      showHideCreateNewList()
+    }) 
+  }  
 }
 
 function cleanSearchFields(){
@@ -696,12 +713,18 @@ async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[], showTitle
 
 async function updateAndShowLatestMovies(){
   loading()
-  let responseJson = await loadLatestMovies();
-  let listaDeFilmes = responseJson.results     
-  mostrarFilmesBuscados(listaDeFilmes, "Nos cinemas")    
+  try {
+    let responseJson = await loadLatestMovies();
+    let lista;
+    if(responseJson!==undefined)
+      lista = responseJson.results  
+   lista !== undefined && mostrarFilmesBuscados(lista, "Nos cinemas") 
+  } catch (error) {
+    console.log(error)
+  }   
 }
 
-async function mostrarFilmesDaLista(allListInfo:IListInside){
+async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilidade de eliminar um parâmetro */{
   listWrapper.innerHTML=''
   let header = document.createElement('header')
 
