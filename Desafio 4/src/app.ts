@@ -1,8 +1,35 @@
-// onload = ()=>{
-//   loadLatestMovies()
-// }
+onload = ()=>{
+  let user = localStorage.getItem('username')
+  let pass = localStorage.getItem('password')
+  let key = localStorage.getItem('apiKey')
+  let token = localStorage.getItem('requestToken')
+  let id = localStorage.getItem('sessionId')
 
-import { ArrayTypeNode, NodeArray } from "../../../../../../node_modules/typescript/lib/typescript";
+  if(user !== null){
+    username = user
+  }else{
+    loginArea.style.display='flex'
+  }
+
+  if(pass !== null){
+    password = pass
+  }
+
+  if(key !== null){
+    apiKey = key
+  }
+
+  if(token !== null){
+    requestToken = token
+  }
+
+  if(id !== null){
+    sessionId = id
+  }
+
+  updateAndShowLatestMovies()  
+}
+
 import { IHttpClientGet,IRequestToken, IRequestAccountId, IResponseLists,IMovieResponse, TMovieOverviewInsideAList, IListInside, TListOverview } from "./types";
 
 var apiKey:string;
@@ -14,6 +41,7 @@ let accountId:number;
 let newListName:string;
 let newListDesc:string;
 
+let loginArea = document.querySelector('.login-background')! as HTMLDivElement
 let loginButton = document.getElementById('login-button')! as HTMLButtonElement;
 let logoutButton = document.getElementById('logout-btn')! as HTMLButtonElement;
 let searchButton = document.getElementById('search-button')!;
@@ -23,6 +51,7 @@ let linkToHomePage = document.querySelector('#home-btn')! as HTMLSpanElement
 let linkToPopularMovies = document.querySelector('#popular-btn')! as HTMLSpanElement
 let linkToupcomingMovies = document.querySelector('#upcoming-btn')! as HTMLSpanElement
 let myListsButton = document.getElementById('my-lists-btn')! as HTMLButtonElement;
+let closeMyListsAreaButton = document.querySelector('#close-my-lists-area')! as HTMLButtonElement
 let createListButton = document.getElementById('create-list')! as HTMLButtonElement;
 let submitNewListButton = document.getElementById('submit-new-list-button')! as HTMLButtonElement;
 let closeNewListWindowButton = document.getElementById('create-list-back-button') as HTMLButtonElement;
@@ -33,11 +62,9 @@ loginButton.addEventListener('click', async () => {
   await criarRequestToken();
   await logar();
   await criarSessao();
-
-  let responseJson = await loadLatestMovies();
-  let listaDeFilmes = responseJson.results
-  mostrarFilmesBuscados(listaDeFilmes) 
-  showHideLogin()  
+  showHideLogin()
+  updateAndShowLatestMovies()  
+  storeLoginData()
 })
 
 logoutButton.addEventListener('click', ()=>{  
@@ -45,12 +72,15 @@ logoutButton.addEventListener('click', ()=>{
   hideMyListsArea()
   showHideLogin()
   cleanSearchFields()
+  searchContainer.innerHTML=''
+  localStorage.clear()
 })
 
 searchButton.addEventListener('click', async () => {
   searchContainer.innerHTML=''
   hideList()
   hideMyListsArea()
+  loading()
   let search = document.getElementById('search') as HTMLInputElement;
   let query = search.value
   let responseJson = await procurarFilme(query);
@@ -69,21 +99,31 @@ myListsButton.addEventListener('click', ()=>{
 })
 
 linkToHomePage.addEventListener('click', async()=>{
-  let responseJson = await loadLatestMovies();
-  let listaDeFilmes = responseJson.results
-  mostrarFilmesBuscados(listaDeFilmes) 
+  updateAndShowLatestMovies()
+  hideList()
+  hideMyListsArea()
 })
 
 linkToPopularMovies.addEventListener('click', async()=>{
+  hideList()
+  hideMyListsArea()
+  loading()
   let responseJson = await loadPopularMovies();
   let listaDeFilmes = responseJson.results
   mostrarFilmesBuscados(listaDeFilmes) 
 })
 
 linkToupcomingMovies.addEventListener('click', async()=>{
+  hideList()
+  hideMyListsArea()
+  loading()
   let responseJson = await loadUpcomingMovies();
   let listaDeFilmes = responseJson.results
   mostrarFilmesBuscados(listaDeFilmes) 
+})
+
+closeMyListsAreaButton.addEventListener('click', ()=>{
+  hideMyListsArea()
 })
 
 createListButton.addEventListener('click', ()=>{
@@ -101,13 +141,8 @@ submitNewListButton.addEventListener('click', async()=>{
   let addedListId = lists[0].id
   showHideCreateNewList() 
   mostrarFilmesDaLista(await pegarLista(addedListId))
+  updateAndShowLatestMovies()  
 })
-
-
-
-
-
-
 
 function preencherSenha() {
     const pass = document.getElementById('senha') as HTMLInputElement
@@ -268,9 +303,17 @@ async function movieItem(movieId:number){
   addToList.classList.toggle('none')
 
   addRemoveMovie.addEventListener('click', ()=>{
-    addToList.classList.toggle('none')
-    movieId!==undefined && hideNotSelectedAddToListModals(movieId)
+    setTimeout(()=>{
+      addToList.classList.toggle('none')
+      movieId!==undefined && hideNotSelectedAddToListModals(movieId)
+    },200)
   })  
+
+  addToList.addEventListener('mouseleave',()=>{
+    setTimeout(()=>{
+      addToList.classList.add('none')
+    },200)    
+  })
 
   const movieTitle = document.createElement('div')!
   movieTitle.classList.add('title')
@@ -436,21 +479,27 @@ async function criarSessao() {
   } 
 }
 
-function showHideLogin(){
-  const loginScreen = document.querySelector('.login-background')! as HTMLDivElement  
+function storeLoginData(){
+    localStorage.setItem("username", username)  
+    localStorage.setItem("password", password)  
+    localStorage.setItem("apiKey", apiKey)  
+    localStorage.setItem("requestToken", requestToken)  
+    localStorage.setItem("sessionId", sessionId)  
+}
+
+function showHideLogin(){ 
   const api = document.getElementById('api-key') as HTMLInputElement
   
-  if(loginScreen.style.display==='none'){
-    loginScreen.style.display = 'flex'
+  if(loginArea.style.display==='none'){
+    loginArea.style.display = 'flex'
     api.value = ''
     setTimeout(()=>{
-      loginScreen.style.opacity = '1'
+      loginArea.style.opacity = '1'
     }, 1000)
   }else{
-    loginScreen.style.opacity = '0'
+    loginArea.style.opacity = '0'
     setTimeout(()=>{
-      loginScreen.style.display = 'none'
-      cleanSearchFields()
+      loginArea.style.display = 'none'
     }, 1000)
   }
   
@@ -471,18 +520,12 @@ function showHideCreateNewList(){
     setTimeout(()=>{
       createNewList.style.opacity = "1" 
     }, 200)   
-  }
-
-   
-  
-  
+  }  
 }
 
 function cleanSearchFields(){
   let search = document.getElementById('search')!as HTMLInputElement
   search.value=''
-  
-  searchContainer.innerHTML=''
 }
 
 function cleanNewListFields(){
@@ -490,6 +533,13 @@ function cleanNewListFields(){
   const descInput = document.getElementById('list-desc-input') as HTMLInputElement
   tituloInput.value = ''
   descInput.value = ''
+}
+
+function loading(){
+  searchContainer.innerHTML=''
+  const spinner = document.createElement('div')! as HTMLDivElement
+  spinner.classList.add('spinner')
+  searchContainer.appendChild(spinner)
 }
 
 async function criarLista(nomeDaLista:string, descricao:string) {
@@ -604,8 +654,7 @@ async function pegarLista(listId:number) {
   return result
 }
 
-async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[] ){
-  searchContainer.innerHTML=''
+async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[]){  
   let ul = document.createElement('ul');
   ul.classList.add('searched-movie-list')
   for (const item of ListaParaIterar) {
@@ -628,8 +677,16 @@ async function mostrarFilmesBuscados(ListaParaIterar:IMovieResponse[] ){
     ul.appendChild(movie)
 
   }
-  
+  searchContainer.innerHTML=''
   searchContainer.appendChild(ul);
+  
+}
+
+async function updateAndShowLatestMovies(){
+  loading()
+  let responseJson = await loadLatestMovies();
+  let listaDeFilmes = responseJson.results     
+  mostrarFilmesBuscados(listaDeFilmes)    
 }
 
 async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilidade de eliminar um parâmetro */{
@@ -689,7 +746,6 @@ async function mostrarFilmesDaLista(allListInfo:IListInside)/* ver a possibilida
     title.innerHTML=`${item.original_title===undefined?item.original_name:item.original_title}`
 
     ul.appendChild(movie)
-
   }
   
   listWrapper.appendChild(ul);
